@@ -23,11 +23,21 @@ const client = new CoinbasePro.AuthenticatedClient(
 (async () => {
   const args = argv['_'];
   if (!Array.isArray(args) || !(args.length > 0)) {
-    console.error('Invalid Usage.');
+    console.error(JSON.stringify({
+      type: 'UsageError',
+      message: 'Invalid Usage.'
+    }, null, 2));
     process.exit(1);
   }
   const cmd = args[0];
   const meth = client[cmd];
+  if (!meth) {
+    console.error(JSON.stringify({
+      type: 'UsageError',
+      message: `${cmd} is not a valid command.`
+    }, null, 2));
+    process.exit(1);
+  }
   const params = args.slice(1);
   const parsed = [];
   for (let i = 0; i < params.length; i++) {
@@ -48,12 +58,15 @@ const client = new CoinbasePro.AuthenticatedClient(
   const data = err && err.data;
   if (status && data) {
     console.error(JSON.stringify({
-      type: 'Error',
+      type: 'ApiError',
       statusCode: status,
       data: data
     }, null, 2));
   } else {
-    console.error(err);
+    console.error(JSON.stringify({
+      type: 'Error',
+      message: err.message || ''
+    }));
   }
   process.exit(1);
 });
